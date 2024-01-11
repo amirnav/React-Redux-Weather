@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PersianDate from './PersianDate';
 import { useDispatch, useSelector } from 'react-redux';
 import getWeatherInfo from '../redux/weather/weatherAction';
@@ -8,14 +8,28 @@ import getWeatherInfo from '../redux/weather/weatherAction';
 const Weather = () => {
     const {loading , data, error }=useSelector(state=>state)
     const dispatch = useDispatch();
+    const[query,setQuery]=useState('')
 
-    const [backMode , setBackMode] = useState('cold')
+    const [backMode , setBackMode] = useState('usual')
 
     const handleGetWeather = e=> {
         e.preventDefault()
-        dispatch(getWeatherInfo('tehran'))
-        console.log(data);
+        dispatch(getWeatherInfo(query))
+        setQuery('')
     }
+    useEffect(()=>{
+        if(!data.main){
+            return
+        }
+        let temp=data.main.temp
+        if(temp<12){
+            setBackMode('cold')
+        }else if (temp<23){
+            setBackMode('usual')
+        }else {
+            setBackMode('warm')
+        }
+    })
 
     return (
         <div className={`app pt-4 container-fluid back_${backMode}`}>
@@ -24,7 +38,8 @@ const Weather = () => {
                     <form onSubmit={handleGetWeather}>
                         <input type="text" 
                         className='search_input w-100 text_color placeholder_color' 
-                        placeholder={'نام شهر یا کشور'}
+                        placeholder={data.name ||'نام شهر یا کشور'}
+                        onChange={(e)=>{setQuery(e.target.value)}}
                         />
                     </form>
                 </div>
